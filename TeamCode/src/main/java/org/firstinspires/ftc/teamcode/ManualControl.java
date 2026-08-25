@@ -41,9 +41,16 @@ public class ManualControl extends LinearOpMode {
         // Intake direction: You may need to flip these (REVERSE) depending on your wiring
         intakeMotor.setDirection(DcMotor.Direction.REVERSE);
         leftIntakeServo.setDirection(CRServo.Direction.REVERSE);
-        rightIntakeServo.setDirection(CRServo.Direction.FORWARD); // Usually one is reversed to "pull in"
+        rightIntakeServo.setDirection(CRServo.Direction.FORWARD);
 
-        telemetry.addData("Status", "Initialized");
+        // --- SAFETY: Set all power to zero during Init ---
+        leftDrive.setPower(0);
+        rightDrive.setPower(0);
+        intakeMotor.setPower(0);
+        leftIntakeServo.setPower(0);
+        rightIntakeServo.setPower(0);
+
+        telemetry.addData("Status", "Initialized - Check Gamepads!");
         telemetry.update();
 
         waitForStart();
@@ -51,9 +58,13 @@ public class ManualControl extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            // --- DRIVE LOGIC ---
+            // --- DRIVE LOGIC (with Deadzone) ---
             double drive = -gamepad1.left_stick_y;
             double turn  =  gamepad1.right_stick_x;
+            
+            // If the signal is tiny, force it to zero (Deadzone)
+            if (Math.abs(drive) < 0.05) drive = 0;
+            if (Math.abs(turn) < 0.05)  turn = 0;
             
             double leftPower  = drive + turn;
             double rightPower = drive - turn;
