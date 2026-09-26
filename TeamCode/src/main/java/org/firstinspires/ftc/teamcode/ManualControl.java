@@ -9,15 +9,16 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 @TeleOp(name="Full Manual Control", group="Linear Opmode")
 public class ManualControl extends LinearOpMode {
 
-    private drivelogic drive;
-    private HardwareMap HardwareMap;
+    private driver driver;
+    private intaker intaker;
+    private shooter shooter;
 
-    @Override
-    public void runOpMode() {
-        drive = new drivelogic(HardwareMap);
 
-         DcMotor leftDrive;
-         DcMotor rightDrive;
+    public void runOpMode(HardwareMap hardwareMap) {
+        driver = new driver(hardwareMap);
+        intaker = new intaker(hardwareMap);
+
+
 
         // Intake Mechanism
         DcMotor intakeMotor;
@@ -28,9 +29,7 @@ public class ManualControl extends LinearOpMode {
 
         // 1. HARDWARE MAPPING
         // Drive wheels
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
-        
+
         // Intake DC Motor (Vertical)
         intakeMotor = hardwareMap.get(DcMotor.class, "intake_motor");
         
@@ -39,9 +38,7 @@ public class ManualControl extends LinearOpMode {
         rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake");
 
         // 2. DIRECTIONS
-        leftDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightDrive.setDirection(DcMotor.Direction.REVERSE);
-        
+
         // Intake direction: You may need to flip these (REVERSE) depending on your wiring
         intakeMotor.setDirection(DcMotor.Direction.REVERSE);
         leftIntakeServo.setDirection(CRServo.Direction.REVERSE);
@@ -56,32 +53,39 @@ public class ManualControl extends LinearOpMode {
         while (opModeIsActive()) {
 
             // --- DRIVE LOGIC ---
-            double drive = -gamepad1.left_stick_y;
-            double turn  =  gamepad1.right_stick_x;
-            
-
-
+            double gamepad1leftstick = -gamepad1.left_stick_y;
+            double gamepad1rightstick  =  gamepad1.right_stick_x;
+            double gamepadrt = gamepad1.right_trigger;
+            double gamepadlt = gamepad1.left_trigger;
+            boolean gamepadrb = gamepad1.right_bumper;
+            boolean gamepadlb = gamepad1.left_bumper;
+            // Gamepad buttons for shooter actions (example using gamepad1)
+            boolean aButton = gamepad1.a;        // ‘A’ button
+            boolean bButton = gamepad1.b;        // ‘B’ button
+            boolean xButton = gamepad1.x;        // ‘X’ button
+            boolean yButton = gamepad1.y;        // ‘Y’ button
+            boolean dpadUp = gamepad1.dpad_up;
+            boolean dpadDown = gamepad1.dpad_down;
+            boolean dpadLeft = gamepad1.dpad_left;
+            boolean dpadRight = gamepad1.dpad_right;
+            driver.drive(gamepadlb, gamepadrb, gamepadrt, gamepadlt, gamepad1leftstick, gamepad1rightstick, aButton, bButton, xButton, yButton, dpadUp, dpadDown, dpadLeft, dpadRight);
+            shooter.shoot(gamepadlb, gamepadrb, gamepadrt, gamepadlt, gamepad1leftstick, gamepad1rightstick, aButton, bButton, xButton, yButton, dpadUp, dpadDown, dpadLeft, dpadRight);
+            intaker.intake(gamepadlb, gamepadrb, gamepadrt, gamepadlt, gamepad1leftstick, gamepad1rightstick, aButton, bButton, xButton, yButton, dpadUp, dpadDown, dpadLeft, dpadRight);
             // --- INTAKE LOGIC (Triggers) ---
             // RT (Right Trigger) = Swallow (Positive Power)
             // LT (Left Trigger)  = Spit Out (Negative Power)
-            double intakePower = 0;
-            
-            if (gamepad1.right_trigger > 0.1) {
-                intakePower = gamepad1.right_trigger; // Scale power with trigger
-            } else if (gamepad1.left_trigger > 0.1) {
-                intakePower = -gamepad1.left_trigger; // Reverse power
-            }
 
-            // Apply power to all three intake components
-            intakeMotor.setPower(intakePower);
-            leftIntakeServo.setPower(intakePower);
-            rightIntakeServo.setPower(intakePower);
 
             // --- DASHBOARD ---
             telemetry.addData("Status", "Run Time: " + runtime);
             telemetry.addData("Drive", "L (%.2f), R (%.2f)");
-            telemetry.addData("Intake", "Power (%.2f)", intakePower);
+            telemetry.addData("Intake", "Power (%.2f)");
             telemetry.update();
         }
+    }
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+
     }
 }
