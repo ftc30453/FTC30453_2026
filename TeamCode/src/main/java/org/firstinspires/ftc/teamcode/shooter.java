@@ -2,36 +2,36 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Gamepad;
+//STEVEN does this one
 public class shooter {
 
-    DcMotor shooterMotorLeft;
-    DcMotor shooterMotorRight;
-
+    DcMotor shooterMotor;
     // Feeder / Indexer Motor (if present)
     DcMotor feederMotor;
     public shooter(HardwareMap hardwareMap) {
         // Connect motors from HardwareMap
-        shooterMotorLeft = hardwareMap.get(DcMotor.class, "shooter_left");
-        shooterMotorRight = hardwareMap.get(DcMotor.class, "shooter_right");
+        shooterMotor = hardwareMap.get(DcMotor.class, "shooter");
 
         feederMotor = hardwareMap.get(DcMotor.class, "feeder_motor");
 
         // Motor directions and modes
-        shooterMotorLeft.setDirection(DcMotor.Direction.FORWARD);
-        shooterMotorRight.setDirection(DcMotor.Direction.REVERSE);
-        shooterMotorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shooterMotorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-    }
-    public void shoot(boolean gamepadlb,boolean gamepadrb,double gamepadrt,double gamepadlt,double gamepad1leftstick,double gamepad1rightstick,boolean aButton,boolean bButton,boolean xButton,boolean yButton,boolean dpadUp,boolean dpadDown,boolean dpadLeft,boolean dpadRight) {
-        double shootPower = 0;
+        shooterMotor.setDirection(DcMotor.Direction.FORWARD);
+        shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        if (gamepadrt > 0.1) {
-            shootPower = gamepadrt; // Scale power with trigger
-        } else if (gamepadlt > 0.1) {
-            shootPower = -gamepadlt; // Reverse power
+    }
+    public void shoot(Gamepad gamepad) {
+        double shootPower = 0;
+        //use if and else if statments to tell robot what to do when specific keys are pressed
+        if (gamepad.right_trigger > 0.1) {
+            shootPower = gamepad.right_trigger; // <- edit this part when rt pressed set shooter power to rt
+        } else if (gamepad.left_trigger > 0.1) {
+            shootPower = -gamepad.left_trigger; //<- edit this part, same as up but reversed
         }
-        shooterMotorLeft.setPower(shootPower);
-        shooterMotorRight.setPower(shootPower);
+        //^
+        //|
+        //logic
+        shooterMotor.setPower(shootPower);
     }
 
 }

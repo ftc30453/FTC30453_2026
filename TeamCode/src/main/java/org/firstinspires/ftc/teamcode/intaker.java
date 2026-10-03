@@ -3,7 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
+import com.qualcomm.robotcore.hardware.Gamepad;
+//ALEX does this one
 public class intaker {
     // Intake Mechanism
     DcMotor intakeMotor;
@@ -25,18 +26,19 @@ public class intaker {
 
     }
 
-    public void intake(boolean gamepadlb,boolean gamepadrb,double gamepadrt,double gamepadlt,double gamepad1leftstick,double gamepad1rightstick,boolean aButton,boolean bButton,boolean xButton,boolean yButton,boolean dpadUp,boolean dpadDown,boolean dpadLeft,boolean dpadRight) {
+    public void intake(Gamepad gamepad) {
+
         double intakePower = 0;
 
-        if (gamepadrb = true) {
+        if (gamepad.right_bumper) {
             intakePower = 1;
-        } else if (gamepadlb = true) {
+        }
+        else if (gamepad.left_bumper) {
             intakePower = -1;
         }
+
         intakeMotor.setPower(intakePower);
         leftIntakeServo.setPower(intakePower);
         rightIntakeServo.setPower(intakePower);
-
-
     }
 }

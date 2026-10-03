@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.HardwareMap;
+//DONT touch this
 @TeleOp(name="Full Manual Control", group="Linear Opmode")
 public class ManualControl extends LinearOpMode {
 
@@ -14,10 +14,12 @@ public class ManualControl extends LinearOpMode {
     private shooter shooter;
 
 
-    public void runOpMode(HardwareMap hardwareMap) {
+
+    @Override
+    public void runOpMode() throws InterruptedException {
         driver = new driver(hardwareMap);
         intaker = new intaker(hardwareMap);
-
+        shooter = new shooter(hardwareMap);
 
 
         // Intake Mechanism
@@ -32,7 +34,7 @@ public class ManualControl extends LinearOpMode {
 
         // Intake DC Motor (Vertical)
         intakeMotor = hardwareMap.get(DcMotor.class, "intake_motor");
-        
+
         // Intake Servos (Horizontal)
         leftIntakeServo  = hardwareMap.get(CRServo.class, "left_intake");
         rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake");
@@ -52,25 +54,9 @@ public class ManualControl extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            // --- DRIVE LOGIC ---
-            double gamepad1leftstick = -gamepad1.left_stick_y;
-            double gamepad1rightstick  =  gamepad1.right_stick_x;
-            double gamepadrt = gamepad1.right_trigger;
-            double gamepadlt = gamepad1.left_trigger;
-            boolean gamepadrb = gamepad1.right_bumper;
-            boolean gamepadlb = gamepad1.left_bumper;
-            // Gamepad buttons for shooter actions (example using gamepad1)
-            boolean aButton = gamepad1.a;        // ‘A’ button
-            boolean bButton = gamepad1.b;        // ‘B’ button
-            boolean xButton = gamepad1.x;        // ‘X’ button
-            boolean yButton = gamepad1.y;        // ‘Y’ button
-            boolean dpadUp = gamepad1.dpad_up;
-            boolean dpadDown = gamepad1.dpad_down;
-            boolean dpadLeft = gamepad1.dpad_left;
-            boolean dpadRight = gamepad1.dpad_right;
-            driver.drive(gamepadlb, gamepadrb, gamepadrt, gamepadlt, gamepad1leftstick, gamepad1rightstick, aButton, bButton, xButton, yButton, dpadUp, dpadDown, dpadLeft, dpadRight);
-            shooter.shoot(gamepadlb, gamepadrb, gamepadrt, gamepadlt, gamepad1leftstick, gamepad1rightstick, aButton, bButton, xButton, yButton, dpadUp, dpadDown, dpadLeft, dpadRight);
-            intaker.intake(gamepadlb, gamepadrb, gamepadrt, gamepadlt, gamepad1leftstick, gamepad1rightstick, aButton, bButton, xButton, yButton, dpadUp, dpadDown, dpadLeft, dpadRight);
+            driver.drive(gamepad1);
+            shooter.shoot(gamepad1);
+            intaker.intake(gamepad1);
             // --- INTAKE LOGIC (Triggers) ---
             // RT (Right Trigger) = Swallow (Positive Power)
             // LT (Left Trigger)  = Spit Out (Negative Power)
@@ -83,9 +69,5 @@ public class ManualControl extends LinearOpMode {
             telemetry.update();
         }
     }
-
-    @Override
-    public void runOpMode() throws InterruptedException {
-
     }
-}
+
