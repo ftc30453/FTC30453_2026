@@ -1,19 +1,20 @@
 package org.firstinspires.ftc.teamcode;
-
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.CRServo;
 //STEVEN does this one
 public class shooter {
 
+
     DcMotor shooterMotor;
     // Feeder / Indexer Motor (if present)
-    DcMotor feederMotor;
+    CRServo feederMotor;
     public shooter(HardwareMap hardwareMap) {
         // Connect motors from HardwareMap
         shooterMotor = hardwareMap.get(DcMotor.class, "shooter");
 
-        feederMotor = hardwareMap.get(DcMotor.class, "feeder_motor");
+        feederMotor = hardwareMap.get(CRServo.class, "feeder_motor");
 
         // Motor directions and modes
         shooterMotor.setDirection(DcMotor.Direction.FORWARD);
@@ -22,17 +23,31 @@ public class shooter {
     }
     public void shoot(Gamepad gamepad) {
         double shootPower = 0;
-        //use if and else if statments to tell robot what to do when specific keys are pressed
+        double feederPower = 0;
+        //use if and else if statements to tell robot what to do when specific keys are pressed
         if (gamepad.right_trigger > 0.1) {
             shootPower = gamepad.right_trigger; // <- edit this part when rt pressed set shooter power to rt
         } else if (gamepad.left_trigger > 0.1) {
             shootPower = -gamepad.left_trigger; //<- edit this part, same as up but reversed
         }
-        //^
+        if (gamepad.x){
+            feederPower = 1;
+        }
+        if (shootPower > 0) {
+            shootPower = Math.min(0.5, shootPower);
+        }
+        else {
+            shootPower = Math.max(-0.5, shootPower);
+        }//^
         //|
         //logic
         shooterMotor.setPower(shootPower);
+        feederMotor.setPower(feederPower);
+
+
     }
+
+
 
 }
 

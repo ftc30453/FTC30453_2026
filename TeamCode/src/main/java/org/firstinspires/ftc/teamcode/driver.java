@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -25,11 +27,11 @@ public class driver {
         frontRight = hardwareMap.get(DcMotor.class, "front_right");
         backLeft = hardwareMap.get(DcMotor.class, "back_left");
         backRight = hardwareMap.get(DcMotor.class, "back_right");
-
-        // Reverse right side motors so all wheels move
-        // forward when given positive power
         frontRight.setDirection(DcMotor.Direction.REVERSE);
         backRight.setDirection(DcMotor.Direction.REVERSE);
+        // Reverse right side motors so all wheels move
+        // forward when given positive power
+
 
         // Get built-in IMU from the Control Hub
         imu = hardwareMap.get(IMU.class, "imu");
@@ -148,7 +150,7 @@ public class driver {
                         + y * Math.cos(-heading);
 
         // =====================================
-        // MECANUM DRIVE EQUATIONS
+        // Mecanum DRIVE EQUATIONS
         //
         // Combines:
         // Forward/Backward
@@ -156,18 +158,10 @@ public class driver {
         // Rotation
         // =====================================
 
-        double frontLeftPower =
-                rotY + rotX + rx;
-
-        double backLeftPower =
-                rotY - rotX + rx;
-
-        double frontRightPower =
-                rotY - rotX - rx;
-
-        double backRightPower =
-                rotY + rotX - rx;
-
+        double frontLeftPower  = rotY + rotX + rx;
+        double backLeftPower   = rotY - rotX + rx;
+        double frontRightPower = rotY - rotX - rx;
+        double backRightPower  = rotY + rotX - rx;
         // =====================================
         // NORMALIZATION
         //

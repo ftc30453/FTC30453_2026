@@ -2,12 +2,17 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
-@TeleOp(name = "Gamepad Debug", group = "Debug")
+@TeleOp(name = "Gamepad Debug", group = "Linear Opmode")
 public class Debug extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        CRServo feederMotor;
+        // Initialize intake motor
+        feederMotor = hardwareMap.get(CRServo.class, "feeder_motor");
 
         telemetry.addLine("Gamepad Debug Ready");
         telemetry.update();
@@ -15,6 +20,13 @@ public class Debug extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
+
+            // Intake control
+            if (gamepad1.b) {
+                feederMotor.setPower(1.0);  // Spin forward
+            } else {
+                feederMotor.setPower(0.0);  // Stop
+            }
 
             // Joysticks
             telemetry.addData("Left Stick X", gamepad1.left_stick_x);
@@ -45,7 +57,7 @@ public class Debug extends LinearOpMode {
             // Stick Buttons
             telemetry.addData("Left Stick Button", gamepad1.left_stick_button);
             telemetry.addData("Right Stick Button", gamepad1.right_stick_button);
-
+            telemetry.addData("servo power", feederMotor.getPower());
             telemetry.update();
         }
     }

@@ -40,5 +40,6 @@ public class intaker {
         intakeMotor.setPower(intakePower);
         leftIntakeServo.setPower(intakePower);
         rightIntakeServo.setPower(intakePower);
+
     }
 }
