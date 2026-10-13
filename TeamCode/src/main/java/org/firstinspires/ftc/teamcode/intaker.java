@@ -4,14 +4,19 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
+
 //ALEX does this one
 public class intaker {
+    private final Telemetry telemetry;
     // Intake Mechanism
     DcMotor intakeMotor;
     CRServo leftIntakeServo;
     CRServo rightIntakeServo;
 
-    public intaker(HardwareMap hardwareMap) {
+    public intaker(HardwareMap hardwareMap, Telemetry telemetry) {
+        this.telemetry = telemetry;
 
         // Intake DC Motor (Vertical)
         intakeMotor = hardwareMap.get(DcMotor.class, "intake_motor");

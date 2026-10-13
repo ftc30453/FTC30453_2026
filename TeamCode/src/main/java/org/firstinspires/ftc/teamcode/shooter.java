@@ -1,16 +1,21 @@
 package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.CRServo;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
+
 //STEVEN does this one
 public class shooter {
-
+    private final Telemetry telemetry;
 
     DcMotor shooterMotor;
     // Feeder / Indexer Motor (if present)
     CRServo feederMotor;
-    public shooter(HardwareMap hardwareMap) {
+    public shooter(HardwareMap hardwareMap, Telemetry telemetry) {
+        this.telemetry = telemetry;
         // Connect motors from HardwareMap
         shooterMotor = hardwareMap.get(DcMotor.class, "shooter");
 
@@ -43,7 +48,8 @@ public class shooter {
         //logic
         shooterMotor.setPower(shootPower);
         feederMotor.setPower(feederPower);
-
+        telemetry.addData("shooterMotor" ,"Power", shootPower);
+        telemetry.addData("feederServo", "Power", feederPower);
 
     }
 

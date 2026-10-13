@@ -15,9 +15,9 @@ public class mainteleop extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        driver = new driver(hardwareMap);
-        intaker = new intaker(hardwareMap);
-        shooter = new shooter(hardwareMap);
+        driver = new driver(hardwareMap, telemetry);
+        intaker = new intaker(hardwareMap, telemetry);
+        shooter = new shooter(hardwareMap, telemetry);
 
 
         // Intake Mechanism

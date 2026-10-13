@@ -8,9 +8,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class driver {
-
+    private final Telemetry telemetry;
     // Mecanum drive motors
     private final DcMotor frontLeft;
     private final DcMotor frontRight;
@@ -20,7 +20,9 @@ public class driver {
     // IMU for field-centric driving
     private final IMU imu;
 
-    public driver(HardwareMap hardwareMap) {
+    public driver(HardwareMap hardwareMap, Telemetry telemetry) {
+        this.telemetry = telemetry;
+
 
         // Hardware mapping
         frontLeft = hardwareMap.get(DcMotor.class, "front_left");
@@ -193,5 +195,15 @@ public class driver {
         frontRight.setPower(frontRightPower);
         backLeft.setPower(backLeftPower);
         backRight.setPower(backRightPower);
+        telemetry.addData("Front Left", frontLeftPower);
+        telemetry.addData("Front Right", frontRightPower);
+        telemetry.addData("Back Left", backLeftPower);
+        telemetry.addData("Back Right", backRightPower);
+
+        telemetry.addData("Joystick Y", y);
+        telemetry.addData("Joystick X", x);
+        telemetry.addData("Turn", rx);
+        telemetry.addData("rotated Y", rotY);
+        telemetry.addData("rotated X", rotX);
     }
 }
