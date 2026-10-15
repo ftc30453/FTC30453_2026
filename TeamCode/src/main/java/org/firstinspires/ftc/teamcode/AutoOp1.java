@@ -174,7 +174,7 @@ public class AutoOp1 extends LinearOpMode {
 
             mecanumDrive(forward, strafe, turn);
 
-            telemetry.addData("X", x);
+            telemetry.addData( "X", x);
             telemetry.addData("Y", y);
             telemetry.addData("Heading", heading);
             telemetry.addData("Distance", distance);

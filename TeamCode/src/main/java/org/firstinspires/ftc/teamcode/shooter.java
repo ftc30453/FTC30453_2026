@@ -29,14 +29,21 @@ public class shooter {
     public void shoot(Gamepad gamepad) {
         double shootPower = 0;
         double feederPower = 0;
+        shooterMotor.setZeroPowerBehavior(
+                DcMotor.ZeroPowerBehavior.BRAKE
+        );
+
         //use if and else if statements to tell robot what to do when specific keys are pressed
         if (gamepad.right_trigger > 0.1) {
             shootPower = gamepad.right_trigger; // <- edit this part when rt pressed set shooter power to rt
         } else if (gamepad.left_trigger > 0.1) {
             shootPower = -gamepad.left_trigger; //<- edit this part, same as up but reversed
         }
-        if (gamepad.x){
+        if (gamepad.x) {
             feederPower = 1;
+        }
+        else if (gamepad.b) {
+            feederPower = -1;
         }
         if (shootPower > 0) {
             shootPower = Math.min(0.5, shootPower);
@@ -48,8 +55,8 @@ public class shooter {
         //logic
         shooterMotor.setPower(shootPower);
         feederMotor.setPower(feederPower);
-        telemetry.addData("shooterMotor" ,"Power", shootPower);
-        telemetry.addData("feederServo", "Power", feederPower);
+        telemetry.addData("Shooter Power", shootPower);
+        telemetry.addData("Feeder Power", feederPower);
 
     }
 
