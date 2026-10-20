@@ -19,7 +19,9 @@ public class driver {
     private static final double TICKS_PER_REV = 537.7;
     // IMU for field-centric driving
     private final IMU imu;
-
+    private long lastLoopTime = System.nanoTime();
+    private double loopHz = 0;
+    private double loopMs = 0;
     public driver(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
 
@@ -54,6 +56,12 @@ public class driver {
     }
 
     public void drive(Gamepad gamepad) {
+        long currentLoopTime = System.nanoTime();
+
+        loopMs = (currentLoopTime - lastLoopTime) / 1_000_000.0;
+        loopHz = 1000.0 / loopMs;
+
+        lastLoopTime = currentLoopTime;
 
         // =====================================
         // IMU RESET
@@ -193,7 +201,10 @@ public class driver {
         // =====================================
         // SEND POWER TO MOTORS
         // =====================================
-
+        frontLeft.setPower(frontLeftPower);
+        frontRight.setPower(frontRightPower);
+        backLeft.setPower(backLeftPower);
+        backRight.setPower(backRightPower);
         // Motor powers
         telemetry.addData("Front Left Power", frontLeftPower);
         telemetry.addData("Front Right Power", frontRightPower);
@@ -226,7 +237,9 @@ public class driver {
         telemetry.addData("Heading (deg)", Math.toDegrees(heading));
         telemetry.addData("RotX", rotX);
         telemetry.addData("RotY", rotY);
-
+        //loop speed read
+        telemetry.addData("Loop Time ms", loopMs);
+        telemetry.addData("Loop Rate Hz", loopHz);
         telemetry.update();
     }
 }
