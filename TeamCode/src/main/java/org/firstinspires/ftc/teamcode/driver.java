@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 
 
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -12,11 +12,11 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class driver {
     private final Telemetry telemetry;
     // Mecanum drive motors
-    private final DcMotor frontLeft;
-    private final DcMotor frontRight;
-    private final DcMotor backLeft;
-    private final DcMotor backRight;
-
+    private final DcMotorEx frontLeft;
+    private final DcMotorEx frontRight;
+    private final DcMotorEx backLeft;
+    private final DcMotorEx backRight;
+    private static final double TICKS_PER_REV = 537.7;
     // IMU for field-centric driving
     private final IMU imu;
 
@@ -25,18 +25,18 @@ public class driver {
 
 
         // Hardware mapping
-        frontLeft = hardwareMap.get(DcMotor.class, "front_left");
-        frontRight = hardwareMap.get(DcMotor.class, "front_right");
-        backLeft = hardwareMap.get(DcMotor.class, "back_left");
-        backRight = hardwareMap.get(DcMotor.class, "back_right");
-        frontRight.setDirection(DcMotor.Direction.REVERSE);
-        backRight.setDirection(DcMotor.Direction.REVERSE);
+        frontLeft = hardwareMap.get(DcMotorEx.class, "front_left");
+        frontRight = hardwareMap.get(DcMotorEx.class, "front_right");
+        backLeft = hardwareMap.get(DcMotorEx.class, "back_left");
+        backRight = hardwareMap.get(DcMotorEx.class, "back_right");
+        frontRight.setDirection(DcMotorEx.Direction.REVERSE);
+        backRight.setDirection(DcMotorEx.Direction.REVERSE);
         // Reverse right side motors so all wheels move
         // forward when given positive power
-        frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        frontRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        backLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        backRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
         // Get built-in IMU from the Control Hub
         imu = hardwareMap.get(IMU.class, "imu");
@@ -86,14 +86,14 @@ public class driver {
         if (gamepad.dpad_up) {
 
             // Move away from driver station
-            y = 0.5;
+            y = -0.5;
             x = 0;
             rx = 0;
 
         } else if (gamepad.dpad_down) {
 
             // Move toward driver station
-            y = -0.5;
+            y = 0.5;
             x = 0;
             rx = 0;
 
@@ -101,14 +101,14 @@ public class driver {
 
             // Move left on the field
             y = 0;
-            x = -0.5;
+            x = 0.5;
             rx = 0;
 
         } else if (gamepad.dpad_right) {
 
             // Move right on the field
             y = 0;
-            x = 0.5;
+            x = -0.5;
             rx = 0;
 
         } else {
@@ -131,7 +131,7 @@ public class driver {
 
         double heading =
                 imu.getRobotYawPitchRollAngles()
-                        .getYaw(AngleUnit.DEGREES);
+                        .getYaw(AngleUnit.RADIANS);
 
         telemetry.addData("Heading", heading);
         // =====================================
@@ -194,19 +194,39 @@ public class driver {
         // SEND POWER TO MOTORS
         // =====================================
 
-        frontLeft.setPower(frontLeftPower);
-        frontRight.setPower(frontRightPower);
-        backLeft.setPower(backLeftPower);
-        backRight.setPower(backRightPower);
-        telemetry.addData("Front Left", frontLeftPower);
-        telemetry.addData("Front Right", frontRightPower);
-        telemetry.addData("Back Left", backLeftPower);
-        telemetry.addData("Back Right", backRightPower);
+        // Motor powers
+        telemetry.addData("Front Left Power", frontLeftPower);
+        telemetry.addData("Front Right Power", frontRightPower);
+        telemetry.addData("Back Left Power", backLeftPower);
+        telemetry.addData("Back Right Power", backRightPower);
 
+// Encoders
+        telemetry.addData("FL Encoder", frontLeft.getCurrentPosition());
+        telemetry.addData("FR Encoder", frontRight.getCurrentPosition());
+        telemetry.addData("BL Encoder", backLeft.getCurrentPosition());
+        telemetry.addData("BR Encoder", backRight.getCurrentPosition());
+
+// RPM calculations
+        double flRPM = (frontLeft.getVelocity() * 60.0) / TICKS_PER_REV;
+        double frRPM = (frontRight.getVelocity() * 60.0) / TICKS_PER_REV;
+        double blRPM = (backLeft.getVelocity() * 60.0) / TICKS_PER_REV;
+        double brRPM = (backRight.getVelocity() * 60.0) / TICKS_PER_REV;
+
+        telemetry.addData("FL RPM", flRPM);
+        telemetry.addData("FR RPM", frRPM);
+        telemetry.addData("BL RPM", blRPM);
+        telemetry.addData("BR RPM", brRPM);
+
+// Driver inputs
         telemetry.addData("Joystick Y", y);
         telemetry.addData("Joystick X", x);
         telemetry.addData("Turn", rx);
-        telemetry.addData("rotated Y", rotY);
-        telemetry.addData("rotated X", rotX);
+
+// Field-centric diagnostics
+        telemetry.addData("Heading (deg)", Math.toDegrees(heading));
+        telemetry.addData("RotX", rotX);
+        telemetry.addData("RotY", rotY);
+
+        telemetry.update();
     }
 }
