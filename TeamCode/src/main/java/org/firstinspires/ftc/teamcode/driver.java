@@ -16,7 +16,7 @@ public class driver {
     private final DcMotorEx frontRight;
     private final DcMotorEx backLeft;
     private final DcMotorEx backRight;
-    private static final double TICKS_PER_REV = 537.7;
+
     // IMU for field-centric driving
     private final IMU imu;
 
@@ -163,10 +163,10 @@ public class driver {
         // Rotation
         // =====================================
 
-        double frontLeftPower  = rotY + rotX + rx;
-        double backLeftPower   = rotY - rotX + rx;
-        double frontRightPower = rotY - rotX - rx;
-        double backRightPower  = rotY + rotX - rx;
+        double frontLeftPower  = y + x + rx;
+        double backLeftPower   = y - x + rx;
+        double frontRightPower = y - x - rx;
+        double backRightPower  = y + x - rx;
         // =====================================
         // NORMALIZATION
         //
@@ -207,15 +207,9 @@ public class driver {
         telemetry.addData("BR Encoder", backRight.getCurrentPosition());
 
 // RPM calculations
-        double flRPM = (frontLeft.getVelocity() * 60.0) / TICKS_PER_REV;
-        double frRPM = (frontRight.getVelocity() * 60.0) / TICKS_PER_REV;
-        double blRPM = (backLeft.getVelocity() * 60.0) / TICKS_PER_REV;
-        double brRPM = (backRight.getVelocity() * 60.0) / TICKS_PER_REV;
 
-        telemetry.addData("FL RPM", flRPM);
-        telemetry.addData("FR RPM", frRPM);
-        telemetry.addData("BL RPM", blRPM);
-        telemetry.addData("BR RPM", brRPM);
+
+
 
 // Driver inputs
         telemetry.addData("Joystick Y", y);
