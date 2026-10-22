@@ -193,7 +193,10 @@ public class driver {
         // =====================================
         // SEND POWER TO MOTORS
         // =====================================
-
+        frontLeft.setPower(frontLeftPower);
+        frontRight.setPower(frontRightPower);
+        backLeft.setPower(backLeftPower);
+        backRight.setPower(backRightPower);
         // Motor powers
         telemetry.addData("Front Left Power", frontLeftPower);
         telemetry.addData("Front Right Power", frontRightPower);
