@@ -212,10 +212,7 @@ public class driver {
         telemetry.addData("Back Right Power", backRightPower);
 
 // Encoders
-        telemetry.addData("FL Encoder", frontLeft.getCurrentPosition());
-        telemetry.addData("FR Encoder", frontRight.getCurrentPosition());
-        telemetry.addData("BL Encoder", backLeft.getCurrentPosition());
-        telemetry.addData("BR Encoder", backRight.getCurrentPosition());
+
 
 // RPM calculations
         double flRPM = (frontLeft.getVelocity() * 60.0) / TICKS_PER_REV;

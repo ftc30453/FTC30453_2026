@@ -16,8 +16,8 @@ public class AutoOp1 extends LinearOpMode {
     private IMU imu;
 
     // Robot pose (in inches and degrees)
-    private double x = 0;
-    private double y = 0;
+    private double x = 4;
+    private double y = 6;
     private double heading = 0;
 
     // Previous encoder readings
