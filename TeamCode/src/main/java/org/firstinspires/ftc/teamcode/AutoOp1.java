@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -23,6 +24,7 @@ public class AutoOp1 extends LinearOpMode {
 
     private DcMotor lf, rf, lr, rr;
     private DcMotor shootmotor, intakemotor;
+    private CRServo feeder, leftIntake, rightIntake;
     private IMU imu;
 
     // Where the robot is placed before INIT
@@ -78,14 +80,26 @@ public class AutoOp1 extends LinearOpMode {
         shootmotor = hardwareMap.get(DcMotor.class, "shooter");
         intakemotor = hardwareMap.get(DcMotor.class, "intake_motor");
 
+        // Same shooter setup as teleop's shooter: with RUN_USING_ENCODER, power 0.5 = half speed, held steady
+        shootmotor.setDirection(DcMotor.Direction.FORWARD);
+        shootmotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shootmotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        feeder = hardwareMap.get(CRServo.class, "feeder_motor");
+        leftIntake = hardwareMap.get(CRServo.class, "left_intake");
+        rightIntake = hardwareMap.get(CRServo.class, "right_intake");
+
+        // Same directions as teleop's intaker, so power 1 pulls balls in
+        intakemotor.setDirection(DcMotor.Direction.REVERSE);
+        leftIntake.setDirection(CRServo.Direction.REVERSE);
+        rightIntake.setDirection(CRServo.Direction.FORWARD);
+
         imu = hardwareMap.get(IMU.class, "imu");
 
         // Same hub mounting as driver.java
         IMU.Parameters parameters = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
                         RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
-                        RevHubOrientationOnRobot.UsbFacingDirection.UP
-                )
+                        RevHubOrientationOnRobot.UsbFacingDirection.UP )
         );
 
         imu.initialize(parameters);
@@ -126,9 +140,10 @@ public class AutoOp1 extends LinearOpMode {
             // From here on the robot keeps facing 0, so it never turns near a wall.
             // The intake starts on the way, so it is already running when the robot arrives.
             startIntake();
-            // 03 + 04 go straight to (6, 6) on a diagonal instead of right-then-up (the floor is clear)
-            goToTile(6, 6, 0);
-            // 05 intake
+            // 03 + 04 go on a diagonal (the floor is clear) to 6 inches short of (6, 6)
+            goToTile(6, 5.75, 0);
+            // 05 intake: creep forward onto the balls at (6, 6), then keep the intake running
+            creepToTile(6, 6, 0);
             intake();
 
             // Spin the shooter up again on the way back
@@ -222,6 +237,10 @@ public class AutoOp1 extends LinearOpMode {
                 + forward * Math.cos(headingRad);
     }
 
+    // Top drive power. creepToTile() lowers it for the slow push forward while intaking.
+    private static final double DRIVE_MAX_POWER = 0.6;
+    private double driveSpeedLimit = DRIVE_MAX_POWER;
+
     // Last drive powers sent, kept between moves so passing through a waypoint doesn't jerk
     private double lastForward = 0;
     private double lastStrafe = 0;
@@ -235,7 +254,7 @@ public class AutoOp1 extends LinearOpMode {
 
         double kP = 0.04;           // drive power per inch of error (full speed beyond ~15 in)
         double kH = 0.012;          // turn power per degree of error
-        double maxPower = 0.6;
+        double maxPower = driveSpeedLimit;
         double maxTurn = 0.4;
         double minPower = 0.12;     // enough to keep the robot creeping in the last few inches
         double minTurn = 0.08;      // same for turning, so the last few degrees don't stall
@@ -382,36 +401,48 @@ public class AutoOp1 extends LinearOpMode {
         lastTurn = 0;
     }
 
-    // How long the shooter / intake run in total, and the least of that time spent standing at the spot.
-    // Starting a motor while the robot is still driving lets that driving time count toward the total.
-    private static final long SHOOT_TOTAL_MS = 5000;
-    private static final long SHOOT_MIN_AT_SPOT_MS = 3000;
+    // Shooting: the shooter needs SHOOTER_SPINUP_MS to get up to speed (it can spin up while the
+    // robot drives), then the feeder pushes balls in for FEED_MS. The feeder only runs once the robot
+    // has stopped at its spot, so no ball is fired on the way.
+    private static final double SHOOTER_POWER = 0.5;   // same as teleop's shooter cap
+    private static final long SHOOTER_SPINUP_MS = 1000;
+    private static final long FEED_MS = 3000;
+    // Intake: runs INTAKE_TOTAL_MS in all, and at least INTAKE_MIN_AT_SPOT_MS after the creep forward
     private static final long INTAKE_TOTAL_MS = 3000;
     private static final long INTAKE_MIN_AT_SPOT_MS = 2000;
+    // Drive power while creeping forward into the balls with the intake running
+    private static final double INTAKE_CREEP_POWER = 0.2;
 
     private long shooterStartedAt = -1;
     private long intakeStartedAt = -1;
 
-    // Spin up the shooter now, while the robot drives to where it shoots
+    // Spin up the shooter now, while the robot drives to where it shoots (the feeder stays off)
     public void startShooter() {
-        shootmotor.setPower(1);
+        shootmotor.setPower(SHOOTER_POWER);
         shooterStartedAt = System.currentTimeMillis();
     }
 
-    // Keep shooting until the shooter has run SHOOT_TOTAL_MS in all, and at least SHOOT_MIN_AT_SPOT_MS here
+    // Wait until the shooter is up to speed, then feed balls in for FEED_MS
     public void shoot() {
         if (shooterStartedAt < 0) {
             startShooter();
         }
         long ranMs = System.currentTimeMillis() - shooterStartedAt;
-        sleep(Math.max(SHOOT_MIN_AT_SPOT_MS, SHOOT_TOTAL_MS - ranMs));
+        if (ranMs < SHOOTER_SPINUP_MS) {
+            sleep(SHOOTER_SPINUP_MS - ranMs);
+        }
+        feeder.setPower(1);
+        sleep(FEED_MS);
+        feeder.setPower(0);
         shootmotor.setPower(0);
         shooterStartedAt = -1;
     }
 
-    // Start the intake now, while the robot drives to where it picks up
+    // Start the intake (motor and both side servos, same as teleop's intaker) while the robot drives
     public void startIntake() {
         intakemotor.setPower(1);
+        leftIntake.setPower(1);
+        rightIntake.setPower(1);
         intakeStartedAt = System.currentTimeMillis();
     }
 
@@ -422,7 +453,16 @@ public class AutoOp1 extends LinearOpMode {
         long ranMs = System.currentTimeMillis() - intakeStartedAt;
         sleep(Math.max(INTAKE_MIN_AT_SPOT_MS, INTAKE_TOTAL_MS - ranMs));
         intakemotor.setPower(0);
+        leftIntake.setPower(0);
+        rightIntake.setPower(0);
         intakeStartedAt = -1;
+    }
+
+    // Drive slowly to a tile, so the intake can pull balls in as the robot moves onto them
+    public void creepToTile(double col, double row, double targetHeading) {
+        driveSpeedLimit = INTAKE_CREEP_POWER;
+        goToTile(col, row, targetHeading);
+        driveSpeedLimit = DRIVE_MAX_POWER;
     }
 
     public void mecanumDrive(
