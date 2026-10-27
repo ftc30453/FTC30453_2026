@@ -1,0 +1,18 @@
+{
+  "_comment": "Field layout. Origin is the field center, +x to the right, +y up (away from the audience), inches. 'solid' elements block the robot. Shapes: rect (center, size, rotation) or circle (center, radius) or polygon (points).",
+
+  "placeholder": true,
+  "placeholder_note": "PLACEHOLDER LAYOUT - set the HIVE and FLOWER positions from Competition Manual section 9 (ARENA).",
+
+  "elements": [
+    { "name": "RED HIVE",  "shape": "rect", "center": [-58, 58], "size": [24, 24], "rotation": 45, "color": "#c0392bcc", "solid": true },
+    { "name": "BLUE HIVE", "shape": "rect", "center": [58, 58],  "size": [24, 24], "rotation": 45, "color": "#2471a3cc", "solid": true },
+
+    { "name": "FLOWER", "shape": "circle", "center": [-24, 12], "radius": 5, "color": "#e59ad3cc", "solid": true },
+    { "name": "FLOWER", "shape": "circle", "center": [24, 12],  "radius": 5, "color": "#e59ad3cc", "solid": true },
+    { "name": "FLOWER", "shape": "circle", "center": [0, -12],  "radius": 5, "color": "#e59ad3cc", "solid": true },
+
+    { "name": "RED START",  "shape": "rect", "center": [-36, -60], "size": [24, 24], "color": "#c0392b33", "solid": false },
+    { "name": "BLUE START", "shape": "rect", "center": [36, -60],  "size": [24, 24], "color": "#2471a333", "solid": false }
+  ]
+}

@@ -1,0 +1,4 @@
+godot/.godot/
+bridge/build/
+*.csv
+bridge/teamcode-path.txt

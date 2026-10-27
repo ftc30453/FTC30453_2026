@@ -1,0 +1,40 @@
+{
+  "_comment": "Robot description for the simulator. Device names must match the Robot Controller configuration and the names in your code. Units: inches, degrees.",
+
+  "name": "30453",
+  "size_in": [18, 18],
+
+  "drivetrain": {
+    "_comment": "Mecanum drive. wheel_diameter_mm 104 = goBILDA mecanum (AutoOp1 uses 41.8 ticks/inch, which matches 537.7 ticks on a 104 mm wheel). Measure track width (left-right wheel spacing) and wheelbase (front-back spacing) on your robot.",
+    "wheel_diameter_mm": 104,
+    "track_width_in": 15.0,
+    "wheelbase_in": 13.0,
+    "strafe_efficiency": 0.85
+  },
+
+  "_hub_comment": "How the Control Hub is PHYSICALLY mounted. If your code passes a different orientation to imu.initialize(), the simulated yaw will be wrong exactly the way it would be on the robot. This matches driver.java (logo RIGHT, USB UP).",
+  "hub": { "logo": "RIGHT", "usb": "UP" },
+
+  "start_pose": { "x": -36, "y": -60, "heading": 90 },
+
+  "devices": [
+    { "name": "front_left",  "type": "motor", "drive_wheel": "FL", "mirrored": false, "ticks_per_rev": 537.7, "max_rpm": 312 },
+    { "name": "front_right", "type": "motor", "drive_wheel": "FR", "mirrored": true,  "ticks_per_rev": 537.7, "max_rpm": 312 },
+    { "name": "back_left",   "type": "motor", "drive_wheel": "BL", "mirrored": false, "ticks_per_rev": 537.7, "max_rpm": 312 },
+    { "name": "back_right",  "type": "motor", "drive_wheel": "BR", "mirrored": true,  "ticks_per_rev": 537.7, "max_rpm": 312 },
+
+    { "name": "shooter",      "type": "motor", "ticks_per_rev": 28,    "max_rpm": 6000 },
+    { "name": "intake_motor", "type": "motor", "ticks_per_rev": 145.1, "max_rpm": 1150 },
+
+    { "name": "feeder_motor", "type": "crservo" },
+    { "name": "left_intake",  "type": "crservo" },
+    { "name": "right_intake", "type": "crservo" },
+
+    { "name": "imu", "type": "imu" }
+  ],
+
+  "_sensor_examples": [
+    { "name": "front_distance", "type": "distance", "pos": [9, 0], "dir_deg": 0, "max_range_in": 80 },
+    { "name": "bumper", "type": "touch", "pos": [9.5, 0] }
+  ]
+}

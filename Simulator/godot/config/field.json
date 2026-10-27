@@ -1,0 +1,42 @@
+{
+  "_comment": "Field layout. Origin is the field center, +x to the right, +y up (away from the audience), inches. 'solid' elements block the robot. Shapes: rect (center, size, rotation) or circle (center, radius) or polygon (points). Elements outside the walls (alliance areas) are drawn but never reached.",
+
+  "_layout_note": "BIOBUZZ field traced from the top-down field diagram: red alliance on the left, blue on the right. Positions are measured from the picture, so expect about 1 inch of error.",
+
+  "placeholder": false,
+
+  "elements": [
+    { "name": "ALLIANCE AREA - RED",  "shape": "rect", "center": [-100, 0], "size": [56, 96], "color": "#e5393566", "solid": false },
+    { "name": "ALLIANCE AREA - BLUE", "shape": "rect", "center": [100, 0],  "size": [56, 96], "color": "#5c6bff66", "solid": false },
+    { "name": "", "shape": "rect", "center": [-78.5, 0], "size": [11, 17], "color": "#c62828aa", "solid": false },
+    { "name": "", "shape": "rect", "center": [78.5, 0],  "size": [11, 17], "color": "#3949abaa", "solid": false },
+    { "name": "", "shape": "rect", "center": [-75.5, 36],  "size": [3, 22], "color": "#e53935cc", "solid": false },
+    { "name": "", "shape": "rect", "center": [75.5, -36],  "size": [3, 22], "color": "#7986cbcc", "solid": false },
+
+    { "name": "LOADING ZONE - RED",  "shape": "rect", "center": [-66, 36], "size": [12, 24], "color": "#d32f2fbb", "solid": false },
+    { "name": "LOADING ZONE - BLUE", "shape": "rect", "center": [66, -36], "size": [12, 24], "color": "#5c6bffbb", "solid": false },
+
+    { "name": "GARDEN - RED",  "shape": "rect", "center": [-60, -70.5], "size": [24, 3], "color": "#ff1f1fee", "solid": false },
+    { "name": "GARDEN - BLUE", "shape": "rect", "center": [60, 70.5],   "size": [24, 3], "color": "#5c6bffee", "solid": false },
+
+    { "name": "RED HIVE",  "shape": "polygon", "points": [[-24, 8], [-2.4, 8], [-2.4, 22.8], [-13.2, 26], [-24, 22.8]], "color": "#c62828cc", "solid": true },
+    { "name": "RED HIVE",  "shape": "polygon", "points": [[-24, -19.6], [-2.4, -19.6], [-2.4, -6], [-13.2, -2.8], [-24, -6]], "color": "#c62828cc", "solid": true },
+    { "name": "BLUE HIVE", "shape": "polygon", "points": [[24, -8], [2.4, -8], [2.4, -22.8], [13.2, -26], [24, -22.8]], "color": "#283593cc", "solid": true },
+    { "name": "BLUE HIVE", "shape": "polygon", "points": [[24, 19.6], [2.4, 19.6], [2.4, 6], [13.2, 2.8], [24, 6]], "color": "#283593cc", "solid": true },
+    { "name": "BIOBUZZ", "shape": "rect", "center": [0.7, -0.4], "size": [27, 8], "color": "#e8d77acc", "solid": true },
+    { "name": "", "shape": "rect", "center": [-24.8, 1.6],  "size": [1.5, 42], "color": "#e0e0e0cc", "solid": true },
+    { "name": "", "shape": "rect", "center": [24.8, -1.6],  "size": [1.5, 42], "color": "#e0e0e0cc", "solid": true },
+
+    { "name": "", "shape": "circle", "center": [-21.2, -10], "radius": 2.5, "color": "#e53935", "solid": false },
+    { "name": "", "shape": "circle", "center": [-17.6, -10], "radius": 2.5, "color": "#e53935", "solid": false },
+    { "name": "", "shape": "circle", "center": [-14, -10],   "radius": 2.5, "color": "#e53935", "solid": false },
+    { "name": "", "shape": "circle", "center": [14.8, 10],   "radius": 2.5, "color": "#3d5afe", "solid": false },
+    { "name": "", "shape": "circle", "center": [18.4, 10],   "radius": 2.5, "color": "#3d5afe", "solid": false },
+    { "name": "", "shape": "circle", "center": [22, 10],     "radius": 2.5, "color": "#3d5afe", "solid": false },
+
+    { "name": "", "shape": "circle", "center": [-24, 69], "radius": 4, "color": "#c9a227ee", "solid": true },
+    { "name": "", "shape": "circle", "center": [69, 24],  "radius": 4, "color": "#c9a227ee", "solid": true },
+    { "name": "", "shape": "circle", "center": [-69, -24], "radius": 4, "color": "#c9a227ee", "solid": true },
+    { "name": "", "shape": "circle", "center": [24, -69], "radius": 4, "color": "#c9a227ee", "solid": true }
+  ]
+}

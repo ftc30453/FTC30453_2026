@@ -1,0 +1,24 @@
+config_version=5
+
+[application]
+
+config/name="FTC Field Sim (4.5)"
+config/description="2D field simulator that runs FTC TeamCode through the Java bridge in ../bridge"
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.5")
+run/low_processor_mode=false
+
+[display]
+
+window/size/viewport_width=1400
+window/size/viewport_height=860
+window/stretch/mode="disabled"
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
