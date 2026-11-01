@@ -19,6 +19,8 @@ public class driver {
     private static final double TICKS_PER_REV = 537.7;
     // IMU for field-centric driving
     private final IMU imu;
+    // Camera aiming at the hive's AprilTag (hold A)
+    private final TagAimer aimer;
     private long lastLoopTime = System.nanoTime();
     private double loopHz = 0;
     private double loopMs = 0;
@@ -53,6 +55,8 @@ public class driver {
         );
 
         imu.initialize(parameters);
+
+        aimer = new TagAimer(hardwareMap);
     }
 
     public void drive(Gamepad gamepad) {
@@ -130,6 +134,15 @@ public class driver {
 
             // Right stick X rotates
             rx = gamepad.right_stick_x;
+
+            // Hold A to turn toward the hive's AprilTag. The left stick still drives.
+            if (gamepad.a && (aimer.canAim(true) || aimer.canAim(false))) {
+                Double bearing = aimer.bearingToEitherHive();
+                if (bearing != null) {
+                    rx = aimer.turnPower(bearing);
+                }
+                telemetry.addData("Aim", bearing != null ? "tag in view" : "no hive tag in view");
+            }
         }
 
         // =====================================
@@ -139,7 +152,7 @@ public class driver {
 
         double heading =
                 imu.getRobotYawPitchRollAngles()
-                        .getYaw(AngleUnit.RADIANS );
+                        .getYaw(AngleUnit.RADIANS);
 
         telemetry.addData("Heading", heading);
         // =====================================

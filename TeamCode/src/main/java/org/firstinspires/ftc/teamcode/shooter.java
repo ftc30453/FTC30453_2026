@@ -46,7 +46,7 @@ public class shooter {
             feederPower = -1;
         }
         if (shootPower > 0) {
-            shootPower = Math.min(0.5, shootPower);
+            shootPower = Math.min(0.7, shootPower);
         }
         else {
             shootPower = Math.max(-0.5, shootPower);

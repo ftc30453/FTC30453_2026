@@ -84,6 +84,9 @@ public abstract class AutoBase extends LinearOpMode {
     // Then the robot turns the opposite way to how the IMU measures it, and the auto would spin forever.
     private static final boolean TURN_REVERSED = true;
 
+    // Finds the hive's AprilTag so the robot can line up before each shot
+    private TagAimer aimer;
+
     @Override
     public void runOpMode() {
 
@@ -145,6 +148,8 @@ public abstract class AutoBase extends LinearOpMode {
         rf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        aimer = new TagAimer(hardwareMap);
 
         waitForStart();
 
@@ -453,6 +458,7 @@ public abstract class AutoBase extends LinearOpMode {
         if (shooterStartedAt < 0) {
             startShooter();
         }
+        aimAtHive();
         long ranMs = System.currentTimeMillis() - shooterStartedAt;
         if (ranMs < SHOOTER_SPINUP_MS) {
             sleep(SHOOTER_SPINUP_MS - ranMs);
@@ -462,6 +468,46 @@ public abstract class AutoBase extends LinearOpMode {
         feeder.setPower(0);
         shootmotor.setPower(0);
         shooterStartedAt = -1;
+    }
+
+    // Aiming before a shot: give up after AIM_TIMEOUT_MS, or sooner if the tag can't be seen.
+    // Ignore a tag this far off: the route already points the robot close to the hive.
+    private static final long AIM_TIMEOUT_MS = 1000;
+    private static final long AIM_NO_TAG_MS = 300;
+    private static final double AIM_MAX_DEG = 30;
+
+    // Turn in place until the camera has our hive's tags in the middle of the picture
+    private void aimAtHive() {
+        if (!aimer.canAim(isRed())) {
+            return;
+        }
+        long startTime = System.currentTimeMillis();
+
+        while (opModeIsActive()) {
+            long elapsed = System.currentTimeMillis() - startTime;
+            if (elapsed > AIM_TIMEOUT_MS) {
+                break;
+            }
+
+            updatePose();
+            Double bearing = aimer.bearingToHive(isRed());
+            if (bearing == null) {
+                if (elapsed > AIM_NO_TAG_MS) {
+                    break;
+                }
+                mecanumDrive(0, 0, 0);
+            } else if (Math.abs(bearing) < TagAimer.AIMED_DEG || Math.abs(bearing) > AIM_MAX_DEG) {
+                break;
+            } else {
+                mecanumDrive(0, 0, aimer.turnPower(bearing));
+                telemetry.addData("Aiming at hive", "%.1f deg", bearing);
+                telemetry.update();
+            }
+
+            idle();
+        }
+
+        mecanumDrive(0, 0, 0);
     }
 
     // Start the intake (motor and both side servos, same as teleop's intaker) while the robot drives
