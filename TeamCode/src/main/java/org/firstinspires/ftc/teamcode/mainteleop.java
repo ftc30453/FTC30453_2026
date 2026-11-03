@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
-
+//cd /c/Users/luoai/code/robot_detector && py pull_recordings.py
+//use after running code on control hub, use robot wifi
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;

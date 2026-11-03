@@ -51,16 +51,62 @@ public class TagAimer {
 
     public static final double AIMED_DEG = 1.5;        // this close counts as aimed
 
+    // Camera recording. The SDK can't record video, so this saves a picture every
+    // RECORD_EVERY_MS on the Control Hub. robot_detector\pull_recordings.py on the computer
+    // copies them over and joins them into a video. Each picture is about 0.5 MB.
+    private static final long RECORD_EVERY_MS = 500;
+    private static final int RECORD_MAX_FRAMES = 600;  // 5 minutes, so the hub can't fill up
+
     private AprilTagProcessor aprilTag;
+    private VisionPortal portal;
     private final boolean hasCamera;
+
+    private boolean recording = false;
+    private boolean recordButtonWasDown = false;
+    private String recordingName;
+    private int recordedFrames = 0;
+    private long lastFrameTime = 0;
 
     public TagAimer(HardwareMap hardwareMap) {
         WebcamName webcam = hardwareMap.tryGet(WebcamName.class, WEBCAM_NAME);
         hasCamera = webcam != null;
         if (hasCamera) {
             aprilTag = AprilTagProcessor.easyCreateWithDefaults();
-            VisionPortal.easyCreateWithDefaults(webcam, aprilTag);
+            portal = VisionPortal.easyCreateWithDefaults(webcam, aprilTag);
         }
+    }
+
+    // Call every loop. Pressing the button starts or stops recording.
+    public void updateRecording(boolean buttonDown) {
+        if (!hasCamera) {
+            return;
+        }
+        if (buttonDown && !recordButtonWasDown) {
+            recording = !recording;
+            if (recording) {
+                recordingName = "rec-" + System.currentTimeMillis() / 1000;
+                recordedFrames = 0;
+            }
+        }
+        recordButtonWasDown = buttonDown;
+
+        if (recordedFrames >= RECORD_MAX_FRAMES) {
+            recording = false;
+        }
+        long now = System.currentTimeMillis();
+        if (recording && now - lastFrameTime >= RECORD_EVERY_MS) {
+            portal.saveNextFrameRaw(String.format("%s-%05d", recordingName, recordedFrames));
+            recordedFrames++;
+            lastFrameTime = now;
+        }
+    }
+
+    public boolean isRecording() {
+        return recording;
+    }
+
+    public int recordedFrames() {
+        return recordedFrames;
     }
 
     public boolean hasCamera() {

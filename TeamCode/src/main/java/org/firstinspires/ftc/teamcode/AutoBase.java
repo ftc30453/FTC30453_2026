@@ -102,7 +102,7 @@ public abstract class AutoBase extends LinearOpMode {
         shootmotor = hardwareMap.get(DcMotor.class, "shooter");
         intakemotor = hardwareMap.get(DcMotor.class, "intake_motor");
 
-        // Same shooter setup as teleop's shooter: with RUN_USING_ENCODER, power 0.5 = half speed, held steady
+        // Same shooter setup as teleop's shooter: with RUN_USING_ENCODER, the power sets a speed that is held steady
         shootmotor.setDirection(DcMotor.Direction.FORWARD);
         shootmotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shootmotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -435,7 +435,7 @@ public abstract class AutoBase extends LinearOpMode {
     // Shooting: the shooter needs SHOOTER_SPINUP_MS to get up to speed (it can spin up while the
     // robot drives), then the feeder pushes balls in for FEED_MS. The feeder only runs once the robot
     // has stopped at its spot, so no ball is fired on the way.
-    private static final double SHOOTER_POWER = 0.5;   // same as teleop's shooter cap
+    private static final double SHOOTER_POWER = 0.7;   // same as teleop's shooter cap
     private static final long SHOOTER_SPINUP_MS = 1000;
     private static final long FEED_MS = 3000;
     // Intake: runs INTAKE_TOTAL_MS in all, and at least INTAKE_MIN_AT_SPOT_MS after the creep forward

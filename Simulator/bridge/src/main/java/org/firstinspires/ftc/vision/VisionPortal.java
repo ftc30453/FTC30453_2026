@@ -8,5 +8,7 @@ public abstract class VisionPortal {
         throw new UnsupportedOperationException("The simulator has no camera");
     }
 
+    public abstract void saveNextFrameRaw(String filename);
+
     public abstract void close();
 }

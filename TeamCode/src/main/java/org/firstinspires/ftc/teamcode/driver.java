@@ -35,6 +35,8 @@ public class driver {
         backRight = hardwareMap.get(DcMotorEx.class, "back_right");
         frontRight.setDirection(DcMotorEx.Direction.REVERSE);
         backRight.setDirection(DcMotorEx.Direction.REVERSE);
+//        frontLeft.setDirection(DcMotorEx.Direction.REVERSE);
+//        backLeft.setDirection(DcMotorEx.Direction.REVERSE);
         // Reverse right side motors so all wheels move
         // forward when given positive power
         frontLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
@@ -76,6 +78,13 @@ public class driver {
 
         if (gamepad.y) {
             imu.resetYaw();
+        }
+
+        // Press Back to start or stop recording the camera
+        aimer.updateRecording(gamepad.back);
+        if (aimer.hasCamera()) {
+            telemetry.addData("Camera recording", aimer.isRecording()
+                    ? "ON, " + aimer.recordedFrames() + " frames" : "off (Back = start)");
         }
 
         // =====================================
@@ -184,10 +193,15 @@ public class driver {
         // Rotation
         // =====================================
 
-        double frontLeftPower  = rotY + rotX + rx;
-        double backLeftPower   = rotY - rotX + rx;
-        double frontRightPower = rotY - rotX - rx;
-        double backRightPower  = rotY + rotX - rx;
+//        double frontLeftPower  = rotY + rotX + rx;
+//        double backLeftPower   = rotY - rotX + rx;
+//        double frontRightPower = rotY - rotX - rx;
+//        double backRightPower  = rotY + rotX - rx;
+
+        double frontLeftPower  = y + x + rx;
+        double backLeftPower   = y - x + rx;
+        double frontRightPower = y - x - rx;
+        double backRightPower  = y + x - rx;
         // =====================================
         // NORMALIZATION
         //
