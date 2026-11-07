@@ -19,8 +19,13 @@ public class driver {
     private static final double TICKS_PER_REV = 537.7;
     // IMU for field-centric driving
     private final IMU imu;
-    // Camera aiming at the hive's AprilTag (hold A)
+    // Camera: Back records. Hold-A AprilTag aiming is commented out in drive().
     private final TagAimer aimer;
+    // Press Start to switch between robot view and field view
+    private boolean fieldCentric = false;
+    private boolean viewButtonWasDown = false;
+    // Set to true if, in field view, the robot drives the wrong way after it has turned
+    private static final boolean FIELD_HEADING_REVERSED = false;
     private long lastLoopTime = System.nanoTime();
     private double loopHz = 0;
     private double loopMs = 0;
@@ -79,6 +84,20 @@ public class driver {
         if (gamepad.y) {
             imu.resetYaw();
         }
+
+        // =====================================
+        // VIEW TOGGLE
+        // Press Start to switch between
+        // robot view (stick forward = robot's front)
+        // and field view (stick forward = away from driver station).
+        // Field view needs Y pressed once with the robot facing away from you.
+        // =====================================
+
+        if (gamepad.start && !viewButtonWasDown) {
+            fieldCentric = !fieldCentric;
+        }
+        viewButtonWasDown = gamepad.start;
+        telemetry.addData("View", fieldCentric ? "FIELD (Start = robot view)" : "ROBOT (Start = field view)");
 
         // Press Back to start or stop recording the camera
         aimer.updateRecording(gamepad.back);
@@ -144,14 +163,15 @@ public class driver {
             // Right stick X rotates
             rx = gamepad.right_stick_x;
 
-            // Hold A to turn toward the hive's AprilTag. The left stick still drives.
-            if (gamepad.a && (aimer.canAim(true) || aimer.canAim(false))) {
-                Double bearing = aimer.bearingToEitherHive();
-                if (bearing != null) {
-                    rx = aimer.turnPower(bearing);
-                }
-                telemetry.addData("Aim", bearing != null ? "tag in view" : "no hive tag in view");
-            }
+            // AprilTag aiming is turned off: remove the // on the lines below to turn it back on.
+//            // Hold A to turn toward the hive's AprilTag. The left stick still drives.
+//            if (gamepad.a && (aimer.canAim(true) || aimer.canAim(false))) {
+//                Double bearing = aimer.bearingToEitherHive();
+//                if (bearing != null) {
+//                    rx = aimer.turnPower(bearing);
+//                }
+//                telemetry.addData("Aim", bearing != null ? "tag in view" : "no hive tag in view");
+//            }
         }
 
         // =====================================
@@ -162,6 +182,9 @@ public class driver {
         double heading =
                 imu.getRobotYawPitchRollAngles()
                         .getYaw(AngleUnit.RADIANS);
+        if (FIELD_HEADING_REVERSED) {
+            heading = -heading;
+        }
 
         telemetry.addData("Heading", heading);
         // =====================================
@@ -197,6 +220,12 @@ public class driver {
 //        double backLeftPower   = rotY - rotX + rx;
 //        double frontRightPower = rotY - rotX - rx;
 //        double backRightPower  = rotY + rotX - rx;
+
+        // Field view drives with the turned stick, robot view with the stick as it is
+        if (fieldCentric) {
+            x = rotX;
+            y = rotY;
+        }
 
         double frontLeftPower  = y + x + rx;
         double backLeftPower   = y - x + rx;

@@ -36,7 +36,7 @@ public class OdometryTest extends LinearOpMode {
 
     // Must match AutoBase
     private static final double TICKS_PER_INCH = 41.8;
-    private static final boolean BACK_ENCODERS_SWAPPED = true;
+    private static final boolean BACK_ENCODERS_SWAPPED = false;
 
     private DcMotor lf, rf, lr, rr;
 

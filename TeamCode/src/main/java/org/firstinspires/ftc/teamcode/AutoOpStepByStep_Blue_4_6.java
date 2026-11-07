@@ -56,10 +56,10 @@ public class AutoOpStepByStep_Blue_4_6 extends LinearOpMode {
     // but not turning). Drive and strafe powers are reversed; turning is not.
     private static final boolean DRIVE_REVERSED = true;
 
-    // The back-left and back-right ENCODER cables are plugged into each other's ports on our robot
+    // The back-left and back-right ENCODER cables used to be plugged into each other's ports
     // (Odometry Test turn check: SWAPPED kept Strafe at 1.9, REVERSED climbed to 130).
-    // Set to false once the cables are swapped back on the hub.
-    private static final boolean BACK_ENCODERS_SWAPPED = true;
+    // The cables were put back on their own ports, so this is false now (true = cables crossed).
+    private static final boolean BACK_ENCODERS_SWAPPED = false;
 
     // Set to true if Odometry Test's "Total turn since A" goes NEGATIVE while holding D-pad LEFT.
     // Then the robot turns the opposite way to how the IMU measures it, and the auto would spin forever.
