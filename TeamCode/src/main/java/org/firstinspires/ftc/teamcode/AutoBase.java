@@ -163,33 +163,33 @@ public abstract class AutoBase extends LinearOpMode {
             // The shooter spins up while the robot drives and turns, instead of after it arrives.
             startShooter();
             // 01 move to (4, 5) without turning: on the top row the corners would hit the wall
-            goToTile(4, 5, 180);
+            goToTile(4, 6, 180);
             // turn around here, where there is room, so the shooter faces the hive
-            goToTile(4, 5, 0);
-            // 02 shoot
-            shoot();
+            goToTile(4, 6, 0);
+            // 02 shoot: the only shot, so it feeds for twice as long
+            shoot(FIRST_SHOT_FEED_MS);
 
             // From here on the robot keeps facing 0, so it never turns near a wall.
             // The intake starts on the way, so it is already running when the robot arrives.
             startIntake();
             // 03 + 04 go on a diagonal (the floor is clear) to 6 inches short of (6, 6)
             goToTile(6, 5.75, 0);
-            // 05 intake: creep forward onto the balls at (6, 6), then keep the intake running
-            creepToTile(6, 6, 0);
+            intake();
+            // 05 intake: creep forward onto the balls, past the middle of (6, 6) to
+            // INTAKE_WALL_GAP_IN from the wall, then keep the intake running. It keeps running for
+            // INTAKE_AFTER_LEAVE_MS once the robot drives off to park.
+            creepToTile(6, INTAKE_ROW, 0);
             intake();
 
-            // Spin the shooter up again on the way back
-            startShooter();
-            // 06 + 07 go straight back to (4, 5) on a diagonal
-            goToTile(4, 5, 0);
-            // 08 shoot (still facing 0, like step 02)
-            shoot();
+            // 06-08 (go back and shoot again) are skipped: the robot parks right after intaking.
 
             // 09 move right, then 10 down. Column 5.6 keeps the robot clear of the post on the right
             // wall, even with a little drift from not stopping at the corners.
             passTile(5.6, 5, 0);
-            passTile(5.6, 2, 0);
-            goToTile(6, 2, 0);
+            passTile(5.6, 2.7, 0);
+            goToTile(5.75, 2.5, 0);
+            // In case the park was quicker than INTAKE_AFTER_LEAVE_MS
+            stopIntake();
         }
     }
 
@@ -320,6 +320,7 @@ public abstract class AutoBase extends LinearOpMode {
         while (opModeIsActive()) {
 
             updatePose();
+            stopIntakeWhenDone();
 
             double dx = targetX - x;
             double dy = targetY - y;
@@ -437,17 +438,35 @@ public abstract class AutoBase extends LinearOpMode {
     // Shooting: the shooter needs SHOOTER_SPINUP_MS to get up to speed (it can spin up while the
     // robot drives), then the feeder pushes balls in for FEED_MS. The feeder only runs once the robot
     // has stopped at its spot, so no ball is fired on the way.
-    private static final double SHOOTER_POWER = 0.7;   // same as teleop's shooter cap
+    private static final double SHOOTER_POWER = 0.5;   // same as teleop's shooter cap
     private static final long SHOOTER_SPINUP_MS = 1000;
     private static final long FEED_MS = 3000;
+    private static final long FIRST_SHOT_FEED_MS = 2 * FEED_MS;
+    // Feeder ("windmill") power while shooting. Auto only: teleop's feeder still runs at full power.
+    private static final double FEEDER_POWER = 0.7;
+    // The feeder pulses instead of running nonstop, so the shooter gets back up to speed between
+    // balls: on for FEED_PULSE_MS (about one ball), then off for FEED_PAUSE_MS. The shot still
+    // takes feedMs in all. Longer pause = more delay between balls.
+    private static final long FEED_PULSE_MS = 500;
+    private static final long FEED_PAUSE_MS = 500;
     // Intake: runs INTAKE_TOTAL_MS in all, and at least INTAKE_MIN_AT_SPOT_MS after the creep forward
     private static final long INTAKE_TOTAL_MS = 3000;
     private static final long INTAKE_MIN_AT_SPOT_MS = 2000;
+    // ...then keeps running this long after the robot starts driving away to park
+    private static final long INTAKE_AFTER_LEAVE_MS = 3000;
     // Drive power while creeping forward into the balls with the intake running
     private static final double INTAKE_CREEP_POWER = 0.2;
+    // Where the robot aims while creeping in to intake, in inches from the top wall. The robot is
+    // 18 inches wide, so the middle of a top-row tile leaves 3 inches. It counts as there once it's
+    // within 1.5 inches (doneInches), so aiming at 0 stops it about 1.5 inches from the wall.
+    private static final double INTAKE_WALL_GAP_IN = 0;
+    private static final double ROBOT_WIDTH_IN = 18;
+    private static final double INTAKE_ROW =
+            6.5 - (ROBOT_WIDTH_IN / 2 + INTAKE_WALL_GAP_IN) / TILE_INCHES;
 
     private long shooterStartedAt = -1;
     private long intakeStartedAt = -1;
+    private long intakeStopAt = -1;
 
     // Spin up the shooter now, while the robot drives to where it shoots (the feeder stays off)
     public void startShooter() {
@@ -457,6 +476,11 @@ public abstract class AutoBase extends LinearOpMode {
 
     // Wait until the shooter is up to speed, then feed balls in for FEED_MS
     public void shoot() {
+        shoot(FEED_MS);
+    }
+
+    // Same, feeding for feedMs instead
+    public void shoot(long feedMs) {
         if (shooterStartedAt < 0) {
             startShooter();
         }
@@ -465,8 +489,13 @@ public abstract class AutoBase extends LinearOpMode {
         if (ranMs < SHOOTER_SPINUP_MS) {
             sleep(SHOOTER_SPINUP_MS - ranMs);
         }
-        feeder.setPower(1);
-        sleep(FEED_MS);
+        long feedEnd = System.currentTimeMillis() + feedMs;
+        while (opModeIsActive() && System.currentTimeMillis() < feedEnd) {
+            feeder.setPower(FEEDER_POWER);
+            sleep(Math.min(FEED_PULSE_MS, Math.max(0, feedEnd - System.currentTimeMillis())));
+            feeder.setPower(0);
+            sleep(Math.min(FEED_PAUSE_MS, Math.max(0, feedEnd - System.currentTimeMillis())));
+        }
         feeder.setPower(0);
         shootmotor.setPower(0);
         shooterStartedAt = -1;
@@ -514,22 +543,36 @@ public abstract class AutoBase extends LinearOpMode {
 
     // Start the intake (motor and both side servos, same as teleop's intaker) while the robot drives
     public void startIntake() {
-        intakemotor.setPower(1);
-        leftIntake.setPower(1);
-        rightIntake.setPower(1);
+        intakemotor.setPower(-1);
+        leftIntake.setPower(-1);
+        rightIntake.setPower(-1);
         intakeStartedAt = System.currentTimeMillis();
     }
 
+    // Intake at the spot, then leave the intake running for INTAKE_AFTER_LEAVE_MS while the robot
+    // drives away, so balls that are still half in get pulled in. goToPosition() turns it off.
     public void intake() {
         if (intakeStartedAt < 0) {
             startIntake();
         }
         long ranMs = System.currentTimeMillis() - intakeStartedAt;
         sleep(Math.max(INTAKE_MIN_AT_SPOT_MS, INTAKE_TOTAL_MS - ranMs));
+        intakeStopAt = System.currentTimeMillis() + INTAKE_AFTER_LEAVE_MS;
+    }
+
+    // Turns the intake off once the time from intake() is up. Called every drive loop.
+    private void stopIntakeWhenDone() {
+        if (intakeStopAt >= 0 && System.currentTimeMillis() >= intakeStopAt) {
+            stopIntake();
+        }
+    }
+
+    public void stopIntake() {
         intakemotor.setPower(0);
         leftIntake.setPower(0);
         rightIntake.setPower(0);
         intakeStartedAt = -1;
+        intakeStopAt = -1;
     }
 
     // Drive slowly to a tile, so the intake can pull balls in as the robot moves onto them

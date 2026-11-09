@@ -26,6 +26,9 @@ public class driver {
     private boolean viewButtonWasDown = false;
     // Set to true if, in field view, the robot drives the wrong way after it has turned
     private static final boolean FIELD_HEADING_REVERSED = false;
+    // Sticks closer to the middle than this count as centered, so a stick that doesn't spring
+    // all the way back (stick drift) can't creep the robot. Raise it if the robot still creeps.
+    private static final double STICK_DEADZONE = 0.1;
     private long lastLoopTime = System.nanoTime();
     private double loopHz = 0;
     private double loopMs = 0;
@@ -156,12 +159,12 @@ public class driver {
             // Normal joystick driving
 
             // Negative because FTC stick Y is backwards
-            y = gamepad.left_stick_y;
-            x = -gamepad.left_stick_x;
+            y = deadzone(gamepad.left_stick_y);
+            x = -deadzone(gamepad.left_stick_x);
 
 
             // Right stick X rotates
-            rx = gamepad.right_stick_x;
+            rx = deadzone(gamepad.right_stick_x);
 
             // AprilTag aiming is turned off: remove the // on the lines below to turn it back on.
 //            // Hold A to turn toward the hive's AprilTag. The left stick still drives.
@@ -294,5 +297,10 @@ public class driver {
         telemetry.addData("Loop Time ms", loopMs);
         telemetry.addData("Loop Rate Hz", loopHz);
         telemetry.update();
+    }
+
+    // 0 inside STICK_DEADZONE, so stick drift doesn't move the robot
+    private static double deadzone(double stick) {
+        return Math.abs(stick) < STICK_DEADZONE ? 0 : stick;
     }
 }
