@@ -18,6 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
  *
  * The shared autonomous routine. Each start position is its own small OpMode file that extends this
  * class and says where the robot starts and which alliance it is on (AutoOp_Blue_4_6, AutoOp_Blue_5_6, AutoOp_Red_3_1, AutoOp_Red_2_1).
+ * AutoOp_Blue_4_1_Wait also replaces the route with its own.
  * All the settings below live only here, so they are changed once for every start.
  *
  * The route is written for BLUE. On RED the field is the same turned 180 degrees, so every tile
@@ -30,6 +31,11 @@ public abstract class AutoBase extends LinearOpMode {
     protected abstract double startCol();
     protected abstract double startRow();
     protected abstract boolean isRed();
+
+    // Which way the robot faces when placed, in blue coordinates. The main route starts facing 0.
+    // A start file placed another way (the Wait autos face 180, shooter toward the hive) overrides
+    // this, or odometry thinks the robot is turned around and drives the wrong way.
+    protected double startHeadingDeg() { return 0; }
 
     // Blue route coordinates -> real field coordinates
     private double fieldCol(double col) {
@@ -132,7 +138,7 @@ public abstract class AutoBase extends LinearOpMode {
         // Where the robot is placed before INIT, facing the hive
         x = tileToInches(fieldCol(startCol()));
         y = tileToInches(fieldRow(startRow()));
-        startHeading = fieldHeading(180);
+        startHeading = fieldHeading(startHeadingDeg());
         heading = startHeading;
 
         lf.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -154,43 +160,62 @@ public abstract class AutoBase extends LinearOpMode {
 //        aimer = new TagAimer(hardwareMap);
 
         waitForStart();
+        startedAt = System.currentTimeMillis();
 
         if (opModeIsActive()) {
-
-            // The shooter is on the robot's back end, so the robot faces 0 (away from the hive) to shoot.
-
-            // 00 start on the top row facing the hive (the start file says which tile)
-            // The shooter spins up while the robot drives and turns, instead of after it arrives.
-            startShooter();
-            // 01 move to (4, 5) without turning: on the top row the corners would hit the wall
-            goToTile(4, 6, 180);
-            // turn around here, where there is room, so the shooter faces the hive
-            goToTile(4, 6, 0);
-            // 02 shoot: the only shot, so it feeds for twice as long
-            shoot(FIRST_SHOT_FEED_MS);
-
-            // From here on the robot keeps facing 0, so it never turns near a wall.
-            // The intake starts on the way, so it is already running when the robot arrives.
-            startIntake();
-            // 03 + 04 go on a diagonal (the floor is clear) to 6 inches short of (6, 6)
-            goToTile(6, 5.75, 0);
-            intake();
-            // 05 intake: creep forward onto the balls, past the middle of (6, 6) to
-            // INTAKE_WALL_GAP_IN from the wall, then keep the intake running. It keeps running for
-            // INTAKE_AFTER_LEAVE_MS once the robot drives off to park.
-            creepToTile(6, INTAKE_ROW, 0);
-            intake();
-
-            // 06-08 (go back and shoot again) are skipped: the robot parks right after intaking.
-
-            // 09 move right, then 10 down. Column 5.6 keeps the robot clear of the post on the right
-            // wall, even with a little drift from not stopping at the corners.
-            passTile(5.6, 5, 0);
-            passTile(5.6, 2.7, 0);
-            goToTile(5.75, 2.5, 0);
-            // In case the park was quicker than INTAKE_AFTER_LEAVE_MS
-            stopIntake();
+            runRoute();
         }
+    }
+
+    // When Play was pressed
+    private long startedAt;
+
+    protected long msSinceStart() {
+        return System.currentTimeMillis() - startedAt;
+    }
+
+    // The route. A start file can replace it with its own (see AutoOp_Blue_4_1_Wait).
+    protected void runRoute() {
+        // The shooter is on the robot's back end, so the robot faces 0 (away from the hive) to
+        // shoot down into the hive from the top, and 180 to shoot up into it from the bottom.
+
+        // 00 start on the top row facing the hive (the start file says which tile)
+        // The shooter spins up while the robot drives and turns, instead of after it arrives.
+        startShooter();
+        // 01 move to (4, 6)
+
+        // turn around so the shooter faces the hive
+        goToTile(4, 6, 0);
+        // 02 first shot: feeds for twice as long, to empty the preloaded balls
+        shoot(FIRST_SHOT_FEED_MS);
+
+        // The intake starts on the way, so it is already running when the robot arrives.
+        startIntake();
+        // 03 + 04 go on a diagonal (the floor is clear) to 6 inches short of (6, 6)
+        goToTile(6, 5.75, 0);
+        // 05 intake: creep forward onto the balls, past the middle of (6, 6) to
+        // INTAKE_WALL_GAP_IN from the wall, then intake briefly. The intake keeps running for
+        // INTAKE_AFTER_LEAVE_MS once the robot drives away.
+        creepToTile(6, INTAKE_ROW, 0);
+        intake();
+
+        // 06 down the right side, around the hive. Column 5.6 keeps the robot clear of the post on
+        // the right wall. At (5.5, 2) there is room on every side to turn around.
+        passTile(5.6, 5, 0);
+        goToTile(5.5, 2, 0);
+        goToTile(5.5, 2, 0);
+        // 07 second shot from (4, 1), facing 180 so the shooter points up at the hive.
+        // The shooter spins up on the way.
+        startShooter();
+        goToTile(3.8, 1.5, 180);
+        goToTile(3.85, 1, 180);
+        stopIntake();
+        shoot();
+
+        // 08 park: straight there on a diagonal, without turning
+        goToTile(3.8, 1.5, 180);
+        goToTile(5.75, 1.2, 180);
+        goToTile(5.75, 1.2, -90);
     }
 
     private static double tileToInches(double tile) {
@@ -439,9 +464,9 @@ public abstract class AutoBase extends LinearOpMode {
     // robot drives), then the feeder pushes balls in for FEED_MS. The feeder only runs once the robot
     // has stopped at its spot, so no ball is fired on the way.
     private static final double SHOOTER_POWER = 0.5;   // same as teleop's shooter cap
-    private static final long SHOOTER_SPINUP_MS = 1000;
+    private static final long SHOOTER_SPINUP_MS = 2000;
     private static final long FEED_MS = 3000;
-    private static final long FIRST_SHOT_FEED_MS = 2 * FEED_MS;
+    protected static final long FIRST_SHOT_FEED_MS = 2 * FEED_MS;
     // Feeder ("windmill") power while shooting. Auto only: teleop's feeder still runs at full power.
     private static final double FEEDER_POWER = 0.7;
     // The feeder pulses instead of running nonstop, so the shooter gets back up to speed between
@@ -449,9 +474,11 @@ public abstract class AutoBase extends LinearOpMode {
     // takes feedMs in all. Longer pause = more delay between balls.
     private static final long FEED_PULSE_MS = 500;
     private static final long FEED_PAUSE_MS = 500;
+    // A start file can give its shots a longer gap between balls (the Wait autos have time to spare)
+    protected long feedPauseMs() { return FEED_PAUSE_MS; }
     // Intake: runs INTAKE_TOTAL_MS in all, and at least INTAKE_MIN_AT_SPOT_MS after the creep forward
-    private static final long INTAKE_TOTAL_MS = 3000;
-    private static final long INTAKE_MIN_AT_SPOT_MS = 2000;
+    private static final long INTAKE_TOTAL_MS = 1500;
+    private static final long INTAKE_MIN_AT_SPOT_MS = 1000;
     // ...then keeps running this long after the robot starts driving away to park
     private static final long INTAKE_AFTER_LEAVE_MS = 3000;
     // Drive power while creeping forward into the balls with the intake running
@@ -461,10 +488,10 @@ public abstract class AutoBase extends LinearOpMode {
     // within 1.5 inches (doneInches), so aiming at 0 stops it about 1.5 inches from the wall.
     private static final double INTAKE_WALL_GAP_IN = 0;
     private static final double ROBOT_WIDTH_IN = 18;
-    private static final double INTAKE_ROW =
-            6.5 - (ROBOT_WIDTH_IN / 2 + INTAKE_WALL_GAP_IN) / TILE_INCHES;
-
+    protected static final double INTAKE_ROW =
+            6.55 - (ROBOT_WIDTH_IN / 2 + INTAKE_WALL_GAP_IN) / TILE_INCHES;
     private long shooterStartedAt = -1;
+
     private long intakeStartedAt = -1;
     private long intakeStopAt = -1;
 
@@ -494,7 +521,7 @@ public abstract class AutoBase extends LinearOpMode {
             feeder.setPower(FEEDER_POWER);
             sleep(Math.min(FEED_PULSE_MS, Math.max(0, feedEnd - System.currentTimeMillis())));
             feeder.setPower(0);
-            sleep(Math.min(FEED_PAUSE_MS, Math.max(0, feedEnd - System.currentTimeMillis())));
+            sleep(Math.min(feedPauseMs(), Math.max(0, feedEnd - System.currentTimeMillis())));
         }
         feeder.setPower(0);
         shootmotor.setPower(0);

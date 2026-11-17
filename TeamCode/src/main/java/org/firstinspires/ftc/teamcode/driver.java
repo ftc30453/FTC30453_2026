@@ -29,6 +29,8 @@ public class driver {
     // Sticks closer to the middle than this count as centered, so a stick that doesn't spring
     // all the way back (stick drift) can't creep the robot. Raise it if the robot still creeps.
     private static final double STICK_DEADZONE = 0.1;
+    // Turning speed with the right stick all the way over (1.0 = full speed). Lower = slower turning.
+    private static final double TURN_SPEED = 0.6;
     private long lastLoopTime = System.nanoTime();
     private double loopHz = 0;
     private double loopMs = 0;
@@ -164,7 +166,7 @@ public class driver {
 
 
             // Right stick X rotates
-            rx = deadzone(gamepad.right_stick_x);
+            rx = deadzone(gamepad.right_stick_x) * TURN_SPEED;
 
             // AprilTag aiming is turned off: remove the // on the lines below to turn it back on.
 //            // Hold A to turn toward the hive's AprilTag. The left stick still drives.

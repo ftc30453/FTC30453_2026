@@ -6,6 +6,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.apriltag.AprilTagSingleDetection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -118,8 +119,18 @@ public class TagAimer {
         return hasCamera && (red ? RED_HIVE_TAG_IDS : BLUE_HIVE_TAG_IDS).length > 0;
     }
 
-    public List<AprilTagDetection> visibleTags() {
-        return hasCamera ? aprilTag.getDetections() : new ArrayList<AprilTagDetection>();
+    // The single tags in view. SDK 12.0 can also report tag clusters (AprilTagClusterDetection),
+    // which have no ID or center, so they are skipped here.
+    public List<AprilTagSingleDetection> visibleTags() {
+        List<AprilTagSingleDetection> tags = new ArrayList<>();
+        if (hasCamera) {
+            for (AprilTagDetection detection : aprilTag.getDetections()) {
+                if (detection instanceof AprilTagSingleDetection) {
+                    tags.add((AprilTagSingleDetection) detection);
+                }
+            }
+        }
+        return tags;
     }
 
     // Degrees to turn to face this alliance's hive, positive = turn left: the average of its
@@ -127,7 +138,7 @@ public class TagAimer {
     public Double bearingToHive(boolean red) {
         double total = 0;
         int count = 0;
-        for (AprilTagDetection tag : visibleTags()) {
+        for (AprilTagSingleDetection tag : visibleTags()) {
             for (int id : red ? RED_HIVE_TAG_IDS : BLUE_HIVE_TAG_IDS) {
                 if (tag.id == id) {
                     total += bearingTo(tag);
@@ -151,7 +162,7 @@ public class TagAimer {
         return Math.abs(blue) < Math.abs(red) ? blue : red;
     }
 
-    public double bearingTo(AprilTagDetection tag) {
+    public double bearingTo(AprilTagSingleDetection tag) {
         return Math.toDegrees(Math.atan2(IMAGE_WIDTH / 2 - tag.center.x, FOCAL_PIXELS)) + AIM_OFFSET_DEG;
     }
 

@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagSingleDetection;
 
 import java.util.List;
 
@@ -41,14 +41,14 @@ public class AprilTagTest extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            List<AprilTagDetection> tags = aimer.visibleTags();
-            AprilTagDetection closest = null;
+            List<AprilTagSingleDetection> tags = aimer.visibleTags();
+            AprilTagSingleDetection closest = null;
 
             telemetry.addLine("Hold A = turn toward the tag closest to center");
             telemetry.addData("Camera", aimer.hasCamera() ? "found" : "NOT FOUND");
             telemetry.addData("Tags in view", tags.size());
 
-            for (AprilTagDetection tag : tags) {
+            for (AprilTagSingleDetection tag : tags) {
                 double bearing = aimer.bearingTo(tag);
                 telemetry.addData("  Tag ID " + tag.id, "%.1f deg %s", bearing, bearing > 0 ? "left" : "right");
                 if (closest == null || Math.abs(bearing) < Math.abs(aimer.bearingTo(closest))) {

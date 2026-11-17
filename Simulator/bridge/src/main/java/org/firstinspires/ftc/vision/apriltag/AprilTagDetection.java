@@ -1,14 +1,8 @@
 package org.firstinspires.ftc.vision.apriltag;
 
-import org.opencv.core.Point;
-
-/** Stand-in with the fields TeamCode reads. */
-public class AprilTagDetection {
-    public final int id;
-    public final Point center;
-
-    public AprilTagDetection(int id, Point center) {
-        this.id = id;
-        this.center = center;
-    }
+/**
+ * Stand-in. Since SDK 12.0 this is the base class of AprilTagSingleDetection and
+ * AprilTagClusterDetection; the tag ID and center are on AprilTagSingleDetection.
+ */
+public abstract class AprilTagDetection {
 }
